@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>프로젝트-Colorless</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body id="page-top">
+        <!-- About-->
+        <section class="about-section text-center" id="about">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-lg-8">
+                        <h2 class="text-white mb-4">Colorless</h2>
+                    </div>
+                </div>
+                <img class="img-fluid" src="assets/img/Colorless/bg-colorless.jpg" alt="..." />
+            </div>
+        </section>
+        <!-- Projects-->
+        <section class="projects-section bg-light" id="projects">
+            <div class="container px-4 px-lg-5">
+                <!-- Featured Project Row-->
+                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/colorless수상.jpg" alt="..." /></div>
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="featured-text text-center text-lg-left">
+                            <h4>넷마블 게임아카데미 5기<br>최우수상 수상작</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">팀 프로젝트</h4>
+                    </div>
+                    <div class="text-center h-100 project" style="margin-top: 15px;">
+                        <h6>팀 규모: 5명(기획1, 아트2, 프로그래밍2)</h6>
+                        <h6>주 담당 업무: 프로그래밍 팀장(모바일 환경 조작, UI, 인벤토리, 쉐이더 그래프)</h6>
+                    </div>
+                </div>
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">패턴퍼즐 소스코드</h4>
+                        <h6 class="text-white"><a href="https://github.com/DevJinsh/Colorless/tree/main/Assets/Script">다른 코드보기(깃허브)</a></h6>
+                    </div>
+                    <div class="bg-black text-left h-100 project source-codescroll">
+                        <pre class="source-codeplace" style="width: 1600px;"><code class="source-code">
+public class Puzzle_Pattern : MonoBehaviour
+{
+    bool isunLocking = false;
+    public static bool Clear = false;
+
+    public Canvas canvas;
+    public GameObject LinePrefab;
+
+    private List&lt;GameObject&gt; Lines;
+    private List&lt;GameObject&gt; Circles;
+    private List&lt;string&gt; Currect_Puzzle = new List&lt;string&gt;() {"5", "1", "8", "3", "4", "9", "2", "7", "6"};
+
+    private GameObject lineOnEdit;
+    private RectTransform lineOnEditRcTs;
+    private GameObject circleOnEdit;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        Lines = new List&lt;GameObject&gt;();
+        Circles = new List&lt;GameObject&gt;();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(isunLocking)
+        {
+            Vector3 mousePos = canvas.transform.InverseTransformPoint(Input.mousePosition);
+
+            lineOnEditRcTs.sizeDelta = new Vector2(lineOnEditRcTs.sizeDelta.x, Vector3.Distance(mousePos, circleOnEdit.transform.localPosition));
+            lineOnEditRcTs.rotation = Quaternion.FromToRotation(Vector3.up, (mousePos - circleOnEdit.transform.localPosition).normalized);
+        }
+    }
+
+    void TrySetLineEdit(GameObject obj)
+    {
+        foreach(var circle in Circles)
+        {
+            if(circle.name.Equals(obj.name))
+            {
+                return;
+            }
+        }
+
+        lineOnEdit = CreateLine(obj.transform.localPosition, obj);
+        lineOnEditRcTs = lineOnEdit.GetComponent&lt;RectTransform&gt;();
+        circleOnEdit = obj;
+    }
+    GameObject CreateLine(Vector3 pos, GameObject obj)
+    {
+        var line = GameObject.Instantiate(LinePrefab, canvas.transform);
+
+        line.transform.localPosition = pos;
+
+        Lines.Add(line);
+        Circles.Add(obj);
+
+        return line;
+    }
+
+    void Check_Puzzle()
+    {
+        if (!Circles.Count.Equals(Currect_Puzzle.Count))
+            return;
+        for(int i = 0; i &lt; Currect_Puzzle.Count; i++)
+        {
+            if(!Currect_Puzzle[i].Equals(Circles[i].name))
+            {
+                return;
+            }
+        }
+        InvokeRepeating("Welcome", 0.5f, 0.5f);
+        Invoke("InvokeCancel", 2f);
+    }
+    public void OnMouseEnterCircle(GameObject obj)
+    {
+        if (isunLocking)
+        {
+            lineOnEditRcTs.sizeDelta = new Vector2(lineOnEditRcTs.sizeDelta.x, Vector3.Distance(circleOnEdit.transform.localPosition, obj.transform.localPosition));
+            lineOnEditRcTs.rotation = Quaternion.FromToRotation(Vector3.up, (obj.transform.localPosition - circleOnEdit.transform.localPosition).normalized);
+
+            TrySetLineEdit(obj);
+        }
+
+    }
+    public void OnMouseDownCircle(GameObject obj)
+    {
+        if(!Clear)
+        {
+            isunLocking = true;
+
+            TrySetLineEdit(obj);
+        }        
+    }
+    public void OnMouseUpCircle(GameObject obj)
+    {
+        isunLocking = false;
+
+        foreach(var line in Lines)
+        {
+            Destroy(line.gameObject);
+        }
+
+        Check_Puzzle();
+
+        Lines.Clear();
+        Circles.Clear();
+
+        lineOnEdit = null;
+        lineOnEditRcTs = null;
+        circleOnEdit = null;
+    }
+
+    void Welcome()
+    {
+        GameObject Welcome_Image = GameObject.Find("패턴인식기 메세지");
+        Subtitles.Load_Subtitles("문이 열렸습니다.");
+        Welcome_Image.GetComponent&lt;Image&gt;().enabled = !Welcome_Image.GetComponent&lt;Image&gt;().enabled;
+    }
+
+    void InvokeCancel()
+    {
+        CancelInvoke("Welcome");
+        Clear = true;
+    }
+}
+                        </code></pre>
+                    </div>
+                    <div class="bg-black text-center h-100 project">
+                        <h5 class="text-white" style="margin-top: 15px">휴대폰 패턴을 구현한 코드입니다.</h5>
+                        <h6 class="text-white" style="font-size: 15px">
+                            점을 누른 위치부터 시작하여 점을 통과할 때 마다 기록되고 손을 떼어냈을 때 정답과 비교하는 방식으로 제작하였습니다.
+                        </h6>
+                    </div>
+                </div>
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">쉐이더 그래프(블러 효과)</h4>
+                    </div>
+                    <div class="bg-black text-left h-100 project">
+                        <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/colorlessShaderGraph.jpg" alt="..." />
+                    </div>
+                    <div class="bg-black text-center h-100 project">
+                        <h5 class="text-white" style="margin-top: 15px">쉐이더 그래프를 활용하여 블러 효과를 제작해보았습니다. </h5>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer-->
+        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Jinsanghun Portfolio Site 2024</div></footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>
