@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>프로젝트-Beyond The Speed</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body id="page-top">
+        <!-- About-->
+        <section class="about-section text-center" id="about">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-lg-8">
+                        <h2 class="text-white mb-4">Gravitia</h2>
+                    </div>
+                </div>
+                <img class="img-fluid" src="assets/img/Gravitia/bg-gravitia.jpg" alt="..." />
+            </div>
+        </section>
+        <!-- Projects-->
+        <section class="projects-section bg-light" id="projects">
+            <div class="container px-4 px-lg-5">
+                <!-- Featured Project Row-->
+                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="assets/img/Gravitia/gravitiaSteamStore.jpg" alt="..." /></div>
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="featured-text text-center text-lg-left">
+                            <h4>스팀 출시(매우 긍정적)</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">팀 프로젝트</h4>
+                    </div>
+                    <div class="text-center h-100 project" style="margin-top: 15px;">
+                        <h6>팀 규모: 5명(게임 디자이너5)</h6>
+                        <h6>주 담당 업무: 레벨 디자인, 프로그래밍(UI, 중력장, 캐릭터, 인터렉티브 오브젝트)</h6>
+                    </div>
+                </div>
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">중력장 메커니즘 소스코드</h4>
+                        <h6 class="text-white"><a href="https://blog.naver.com/sanghun1425/223344972708">코드 해석보기(블로그)</a></h6>
+                    </div>
+                    <div class="bg-black text-left h-100 project source-codescroll">
+                        <pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+public abstract class GravityZone : MonoBehaviour
+{
+    public float damping = 1f;
+    public float gravityPower = 9.81f;
+
+    protected List&lt;Rigidbody&gt; _rigidbodies = new List&lt;Rigidbody&gt;();
+    protected GravityGun _gravityGun;
+
+    protected PlayerMovementManager _playerMovementManager;
+    public bool hasSpring = false;
+    private void OnEnable()
+    {
+        _gravityGun = FindAnyObjectByType&lt;GravityGun&gt;();
+        _playerMovementManager = FindAnyObjectByType&lt;PlayerMovementManager&gt;();
+        _gravityGun.gravityZones.Add(gameObject);
+    }
+
+    private void FixedUpdate()
+    {
+        if (_rigidbodies != null)
+        {
+            ApplyGravity();
+        }
+    }
+    protected virtual void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.TryGetComponent(out Rigidbody item) &amp;&amp; !item.CompareTag("Player") &amp;&amp; !item.CompareTag("Projectile"))
+        {
+            if (other.gameObject.CompareTag("RemoveGravityZone"))
+            {
+                Destroy(gameObject);
+                return;
+            }
+            _rigidbodies.Add(item);
+            item.gameObject.GetComponent&lt;Rigidbody&gt;().useGravity = false;
+            if (item.CompareTag("TurretBullet"))
+            {
+                item.GetComponent&lt;RocketMachineBullet&gt;().stop = true;
+            }
+            if (other.gameObject.TryGetComponent(out Spring spring))
+            {
+                hasSpring = true;
+                spring.IsForce = false;
+            }
+        }
+        else if (other.CompareTag("Player"))
+        {
+            EnterGravityZone(other, item);
+        }
+    }
+
+    protected virtual void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.TryGetComponent(out Rigidbody item))
+        {
+            _rigidbodies.Remove(item);
+            item.gameObject.GetComponent&lt;Rigidbody&gt;().useGravity = true;
+            if (other.gameObject.TryGetComponent(out NotUseGravity notUseGravity))
+            {
+                item.gameObject.GetComponent&lt;Rigidbody&gt;().useGravity = false;
+            }
+        }
+        if (other.CompareTag("Player"))
+        {
+            _playerMovementManager.isGravityArea = false;
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (_rigidbodies == null)
+            return;
+
+        foreach (var item in _rigidbodies)
+        {
+            if (item != null)
+            {
+                item.gameObject.GetComponent&lt;Rigidbody&gt;().useGravity = true;
+                if (item.gameObject.TryGetComponent(out Spring spring))
+                {
+                    spring.ContactedGravityCount--;
+                    if (spring.ContactedGravityCount == 0)
+                    {
+                        spring.JumpForce = spring.CalculateJumpForce();
+                        spring.IsForce = true;
+                    }
+                }
+                if (item.gameObject.TryGetComponent(out TagContact tagContact))
+                {
+                    tagContact.isContactedArray[1] = false;
+                }
+                if (item.gameObject.TryGetComponent(out NotUseGravity notUseGravity))
+                {
+                    item.gameObject.GetComponent&lt;Rigidbody&gt;().useGravity = false;
+                }
+            }
+        }
+        _rigidbodies.Clear();
+
+        if (_gravityGun.gravityZones.Contains(gameObject))
+        {
+            _gravityGun.gravityZones.Remove(gameObject);
+        }
+    }
+
+    protected abstract void ApplyGravity();
+    protected abstract void EnterGravityZone(Collider other, Rigidbody item);
+}
+                    </code></pre>
+                    </div>
+                    <div class="bg-black text-center h-100 project">
+                        <h5 class="text-white" style="margin-top: 15px">게임의 핵심 매커니즘인 중력장 시스템을 구현한 코드입니다.</h5>
+                        <h6 class="text-white" style="font-size: 15px">
+                            중력장이 4종류 존재하기 때문에 &lt;추상클래스&gt;를 이용하여 중력장의 개념을 추상화하고 각 중력장의 기능은 재정의하여 사용하는 방식을 이용했습니다.
+                        </h6>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer-->
+        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Jinsanghun Portfolio Site 2024</div></footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>
