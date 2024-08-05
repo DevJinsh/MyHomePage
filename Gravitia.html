@@ -340,7 +340,7 @@ private void Landing()
                     </code></pre></div>
                             <p>-조작을 더 쉽게 하기 위해서 코요테 타임을 도입<br>
                                 -점프 높이를 정해두어 점프 시간에 맞게 최대 높이에 도달하도록 작업<br>
-                                -점프를 누르면 자동적으로 파쿠르(클라임)판정이 시작</p>
+                                -점프를 누르면 파쿠르(클라임)판정 시작</p>
                         </details>
                         <details>
                             <summary>파쿠르(클라임)</summary>
@@ -426,7 +426,7 @@ public Vector3 CalcurateClimbPosition()
                             <p>-캐릭터에 별도 콜라이더를 설치<br>
                                 -클라임 판정이 돌아가는 동안 조건이 충족되면 자동적으로 실행<br>
                                 -클라임 시작 시 도착 위치 계산<br>
-                                -위로 먼저 캐릭터를 이동시킨 후 옆으로 이동시켜 대각선 이동이 아닌 직각이동으로 처리(대각이동 시 콜라이더로 인한 오차 발생)</p>
+                                -직각이동(상하 이동 -&gt; 좌우 이동)으로 처리(대각이동 시 콜라이더로 인한 오차 발생)</p>
                         </details>
                         <details>
                             <summary>전체 코드</summary>
@@ -952,7 +952,7 @@ public class PlayerMovementManager : MonoBehaviour, InputSystemAction.IPlayerAct
                     <h5 class="mt-2">&#8226; UI</h5>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Gravitia/Localization.jpg">
                     <h6 class="mt-2"> - 로컬라이징 기능(스팀이라는 다국적 플랫폼 환경에 맞춰 다국적 플레이어들을 고려)</h6>
-                    <h6> - 메인메뉴, 퍼즈메뉴, 튜토리얼, 옵션</h6>
+                    <h6> - 메인메뉴, 퍼즈메뉴, 튜토리얼, 옵션 UI구현</h6>
                 </div>
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
                     <div class="bg-black text-center h-100 project">
