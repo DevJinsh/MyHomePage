@@ -60,111 +60,86 @@
                     <h5 class="mt-2">&#8226; 퍼즐 구현</h5>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/UnBlockme.gif">
                     <details>
-                        <summary>구현 방법</summary>
+                        <summary>언블럭미 퍼즐구현 방법</summary>
                         <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Puzzle_MovingBlock : MonoBehaviour
 {
-public Canvas canvas;
-public GameObject[] Stage;
-public static int Current_State = 0;
-Vector3 ClickPoint;
-GameObject Block;
+    public Canvas canvas;
+    public GameObject[] Stage;
+    public static int Current_State = 0;
+    Vector3 ClickPoint;
+    GameObject Block;
 
-void Update()
-{
-if(!Puzzle_ClearMovingBlock.Clear)
-{
-    if (Block != null)
+    void Update()
     {
-        Vector3 distence = Input.mousePosition - ClickPoint;
-        ClickPoint += distence;
-        Block.GetComponent&lt;Rigidbody2D&gt;().AddForce(distence * 100);
-    }
-    if (Current_State &lt; 4)
-    {
-        for (int i = 0; i &lt; Stage.Length; i++)
+        if(!Puzzle_ClearMovingBlock.Clear)
         {
-            if (Current_State != i)
+            if (Block != null)
             {
-                Stage[i].SetActive(false);
+                Vector3 distence = Input.mousePosition - ClickPoint;
+                ClickPoint += distence;
+                Block.GetComponent&lt;Rigidbody2D&gt;().AddForce(distence * 100);
+            }
+            if (Current_State &lt; 4)
+            {
+                for (int i = 0; i &lt; Stage.Length; i++)
+                {
+                    if (Current_State != i)
+                    {
+                        Stage[i].SetActive(false);
+                    }
+                    else
+                    {
+                        if (Stage[i].activeSelf != true)
+                        {
+                            Stage[i].SetActive(true);
+                        }
+                    }
+                }
             }
             else
             {
-                if (Stage[i].activeSelf != true)
-                {
-                    Stage[i].SetActive(true);
-                }
+                Puzzle_ClearMovingBlock.Clear = true;
+                Player.isInteraction = false;
             }
+        }        
+        else
+        {
+            Subtitles.Load_Subtitles("이미 클리어한 퍼즐이다.");
         }
     }
-    else
+
+    public void Set_Block(GameObject obj)
     {
-        Puzzle_ClearMovingBlock.Clear = true;
-        Player.isInteraction = false;
+        Block = obj;
+        ClickPoint = Input.GetTouch(0).position;
     }
-}        
-else
-{
-    Subtitles.Load_Subtitles("이미 클리어한 퍼즐이다.");
-}
-}
 
-public void Set_Block(GameObject obj)
-{
-Block = obj;
-ClickPoint = Input.GetTouch(0).position;
-}
+    public void Del_Block()
+    {
+        Block = null;
+    }
 
-public void Del_Block()
-{
-Block = null;
-}
-
-public static void NextStage()
-{
-Current_State++;
-}
+    public static void NextStage()
+    {
+        Current_State++;
+    }
 }
                 </code></pre></div>
-                        <p>-블럭들마다 리지드바디의 Freeze 속성을 사용하여 이동방향을 고정<br>
-                            -클릭 시 블럭을 지정<br>
-                            -드래그 시 마우스 이동방향으로 힘을 가해 이동</p>
+                        <h6 class="mt-2">&#45; 블럭들마다 리지드바디의 Freeze 속성을 사용하여 이동방향을 고정</h6>
+                        <h6>&#45; 클릭 시 블럭을 지정</h6>
+                        <h6>&#45; 드래그 시 마우스 이동방향으로 힘을 가해 이동</h6>
                     </details>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Pattern.gif">
-                    <h6 class="mt-2">패턴형식의 잠금장치를 이용하여 패턴의 모양 힌트를 찾기 위해 오브젝트를 조금 더 자세히 들여다보는 것을 의도하였습니다.</h6>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/PatternHint.jpg">
-                    <h6 class="mt-2">거미줄 사이에 빨간 선을 추가해 패턴에 대한 힌트를 숨겨두었지만 빨간색 약을 얻지 못했다면 흰색으로 보이기 때문에 찾기 힘들도록 만들어 플레이 순서를 유도하였습니다.</h6>
-                    
-                    <h5 class="mt-2">&#8226; 애니메이션</h5>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Animation.gif">
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Animation-2.gif">
-                    <h6 class="mt-2">메인화면과 카멜레온 등을 조금 더 생동감있게 표현하기 위해 애니메이션을 작업했습니다.</h6>
-                    
-                    <h5 class="mt-2">&#8226; UI</h5>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Inventory.jpg">
-                    <h6 class="mt-2">플레이에 직접 사용해야하는 아이템들이 존재하여 인벤토리를 만들었습니다.</h6>
-                    <h6>List 형태로 플레이어의 인벤토리 공간을 만들었으며 인벤토리의 아이템 클릭 시 아이템 정보를 저장하여 사용 시 없애는 방식으로 아이템 사용 기능을 작업하였습니다.</h6>
-                    
-                    <h5 class="mt-2">&#8226; 쉐이더 그래프</h5>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/ShaderGraph-2.png">
-                    <h6 class="mt-2">색맹인 주인공이 보는 배경을 표현하기 위해서 흑백 배경에서 점차 회복하는 과정을 만들었습니다.</h6>
-                    <h6>이미지를 색깔 별로 만들어 기본 베이스 배경에 점차 합치며 표현하는 방식으로 제작하였습니다. </h6>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/ShaderGraphResult.gif">
-                    <h6 class="mt-2">위의 쉐이더 그래프를 사용한 결과물입니다.</h6>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/BlurShaderGraph.jpg">
-                    <h6 class="mt-2">현미경의 초점을 맞추는 과정을 표현하기 위해 쉐이더 그래프를 사용하여 블러효과를 만들었습니다.</h6>
-                    <h6>이미지를 여러개를 겹쳐 초점바를 통해 중심을 기점으로 이미지의 분포도와 투명도를 조절하여 하나의 이미지로 겹치게 되면 선명하게 보이게 되도록 작업하였습니다.</h6>
-                </div>
-                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="bg-black text-center h-100 project">
-                        <h4 class="text-white" style="margin-top: 15px">패턴퍼즐 소스코드</h4>
-                        <h6 class="text-white"><a href="https://github.com/DevJinsh/Colorless/tree/main/Assets/Script">전체 코드보기(깃허브)</a></h6>
-                        <h6 class="text-white"><a href="https://blog.naver.com/sanghun1425/222147705779">코드 해석보기(블로그)</a></h6>
-                    </div>
-                    <div class="bg-black text-left h-100 project source-codescroll">
-                        <pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+                    <details>
+                        <summary>패턴 퍼즐 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
 public class Puzzle_Pattern : MonoBehaviour
 {
     bool isunLocking = false;
@@ -292,13 +267,289 @@ public class Puzzle_Pattern : MonoBehaviour
         Clear = true;
     }
 }
-                    </code></pre>
-                    </div>
-                    <div class="bg-black text-center h-100">
-                        <h5 class="text-white" style="margin-top: 15px">휴대폰 패턴을 구현한 코드입니다.</h5>
-                        <h6 class="text-white" style="font-size: 15px">
-                            점을 누른 위치부터 시작하여 점을 통과할 때 마다 기록되고 손을 떼어냈을 때 정답과 비교하는 방식으로 제작하였습니다.
-                        </h6>
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; Line프리팹을 만들어 점마다 잇는 선으로 이용</h6>
+                        <h6>&#45; List 자료구조를 사용하여 정답과 플레이어의 기록 비교</h6>
+                    </details>
+                    <h5 class="mt-2">&#8226; 애니메이션</h5>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Animation.gif">
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Animation-2.gif">
+                    <h6 class="mt-2">&#45; 메인화면과 카멜레온 등을 조금 더 생동감있게 표현하기 위해 애니메이션 사용</h6>
+                    
+                    <h5 class="mt-2">&#8226; UI</h5>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/Inventory.jpg">
+                    <details>
+                        <summary>인벤토리 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+public void Show_Inventory()
+{
+    Player.ShowInventory = true;
+}
+
+public void pressSlot(int index)
+{
+    if (Player.Inventory.Count &gt; index && Player.Inventory.Count &gt; 0)
+    {
+        Player.Handle_Item = Player.Inventory[index];
+        Subtitles.Load_Subtitles(Player.Handle_Item.name + "를 장착했습니다.");
+    }
+    else
+    {
+        Player.Handle_Item = null;
+    }
+}
+public static void Pick_Item(GameObject obj)
+{
+    Player.Add_Inventory(obj);
+    Subtitles.Load_Subtitles(obj.name + "를 흭득했습니다.");
+    obj.SetActive(false);
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 아이템 오브젝트에 이벤트 트리거 설정</h6>
+                        <h6>&#45; List 자료구조를 활용하여 구현(아이템 획득/소모)</h6>
+                        <h6>&#45; 슬롯마다 UGUI(버튼)으로 제작</h6>
+                    </details>
+                    <details>
+                        <summary>자막 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Subtitles : MonoBehaviour
+{
+    private static Subtitles subtitle;
+    private IEnumerator coroutine;
+    static IEnumerator a = null;
+    private void Awake() =&gt; subtitle = this;
+
+    static Text Subtext;
+    Text SubT;
+    void Start()
+    {
+        subtitle.GetComponent&lt;Text&gt;().enabled = false;
+        Subtext = subtitle.GetComponent&lt;Text&gt;();
+    }
+
+    public static void Load_Subtitles(string sub)
+    {
+        if (a != null)
+        {            
+            subtitle.StopCoroutine(a);
+        }
+        Subtext.text = sub;
+        Subtext.color = Color.white;
+        Subtext.enabled = true;
+        a = FadeOut();
+        subtitle.StartCoroutine(a);
+    }
+    static IEnumerator FadeOut()
+    {
+        float duration = 1.5f; // 1.5secs
+        float currentTime = 0f;
+        while (currentTime &lt; duration)
+        {
+            float alpha = Mathf.Lerp(1f, 0f, currentTime / duration);
+            Subtext.color = new Color(Subtext.color.r, Subtext.color.g, Subtext.color.b, alpha);
+            currentTime += Time.deltaTime;
+            yield return null;
+        }
+        Subtext.enabled = false;
+        yield break;
+    }
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 코루틴 사용으로 FadeOut효과 적용</h6>
+                    </details>
+                    <h6>&#43; 힌트, 튜토리얼 화면 구현</h6>
+                    <h5 class="mt-2">&#8226; 쉐이더 그래프</h5>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/ShaderGraphResult.gif">
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/ShaderGraph-2.png">
+                    <details>
+                        <summary>색맹 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+public void UnLockColor_Red(GameObject obj)
+{
+    if (Player.Handle_Item != null)
+    {
+        if (Player.Handle_Item.name.Equals("약물보관소_열쇠(빨강)"))
+        {
+            for (int i = 0; i &lt; Scene.Entire_Background.Length; i++)
+            {
+                var material = Scene.Entire_Background[i].GetComponent&lt;SpriteRenderer&gt;().material;
+
+                if (material != null)
+                {
+                    material.SetFloat("_Red", 1f);
+                }
+            }
+            for (int i = 0; i &lt; Scene.Props.Length; i++)
+            {
+                if (Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Red", 1f);
+                    }
+                }
+                else if (Scene.Props[i].GetComponent&lt;Image&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;Image&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Red", 1f);
+                    }
+                }
+            }
+            Subtitles.Load_Subtitles("빨간약을 얻었다.");
+            Player.Use_Item(Player.Handle_Item);
+            obj.SetActive(false);
+            GameObject.Find(obj.name + "-열림").GetComponent&lt;SpriteRenderer&gt;().enabled = true;
+        }
+        else
+        {
+            Subtitles.Load_Subtitles("열쇠가 맞지 않는다.");
+        }
+    }
+    else
+    {
+        Subtitles.Load_Subtitles("열쇠가 필요한 것 같다.");
+    }
+}
+
+public void UnLockColor_Yellow(GameObject obj)
+{
+    if (Player.Handle_Item != null)
+    {
+        if (Player.Handle_Item.name.Equals("약물보관소_열쇠(노랑)"))
+        {
+            for (int i = 0; i &lt; Scene.Entire_Background.Length; i++)
+            {
+                var material = Scene.Entire_Background[i].GetComponent&lt;SpriteRenderer&gt;().material;
+
+                if (material != null)
+                {
+                    material.SetFloat("_Yellow", 1f);
+                }
+            }
+            for (int i = 0; i &lt; Scene.Props.Length; i++)
+            {
+                if (Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Yellow", 1f);
+                    }
+                }
+                else if (Scene.Props[i].GetComponent&lt;Image&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;Image&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Yellow", 1f);
+                    }
+                }
+            }
+            Subtitles.Load_Subtitles("노란약을 얻었다.");
+            Player.Use_Item(Player.Handle_Item);
+            obj.SetActive(false);
+            GameObject.Find(obj.name + "-열림").GetComponent&lt;SpriteRenderer&gt;().enabled = true;
+        }
+        else
+        {
+            Subtitles.Load_Subtitles("열쇠가 맞지 않는다.");
+        }
+    }
+    else
+    {
+        Subtitles.Load_Subtitles("열쇠가 필요한 것 같다.");
+    }
+}
+
+public void UnLockColor_Blue(GameObject obj)
+{
+    if (Player.Handle_Item != null)
+    {
+        if (Player.Handle_Item.name.Equals("약물보관소_열쇠(파랑)"))
+        {
+            for (int i = 0; i &lt; Scene.Entire_Background.Length; i++)
+            {
+                var material = Scene.Entire_Background[i].GetComponent&lt;SpriteRenderer&gt;().material;
+
+                if (material != null)
+                {
+                    material.SetFloat("_Blue", 1f);
+                }
+            }
+            for (int i = 0; i &lt; Scene.Props.Length; i++)
+            {
+                if (Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;SpriteRenderer&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Blue", 1f);
+                    }
+                }
+                else if (Scene.Props[i].GetComponent&lt;Image&gt;() != null)
+                {
+                    var props_material = Scene.Props[i].GetComponent&lt;Image&gt;().material;
+                    if (props_material != null)
+                    {
+                        props_material.SetFloat("_Blue", 1f);
+                    }
+                }
+            }
+            Subtitles.Load_Subtitles("파란약을 얻었다.");
+            Player.Use_Item(Player.Handle_Item);
+            obj.SetActive(false);
+            GameObject.Find(obj.name + "-열림").GetComponent&lt;SpriteRenderer&gt;().enabled = true;
+        }
+        else
+        {
+            Subtitles.Load_Subtitles("열쇠가 맞지 않는다.");
+        }
+    }
+    else
+    {
+        Subtitles.Load_Subtitles("열쇠가 필요한 것 같다.");
+    }
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 배경마다 4개의 텍스쳐 제작(흑백, 빨, 노, 파)</h6>
+                        <h6>&#45; 논리식으로 합칠 텍스쳐를 필터링</h6>
+                        <h6>&#45; Multiply노드와 Add노드를 이용해 텍스쳐를 합침</h6>
+                    </details>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/Colorless/BlurShaderGraph.jpg">
+                    <details>
+                        <summary>블러 효과 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+if (Bars_rect != null)
+{
+    if (Bars_rect.localPosition.y &gt;= -600f && Bars_rect.localPosition.y &lt;= 600f || mosPos.y &gt;= -600f && mosPos.y &lt;= 600f)
+    {
+        Bars_rect.position = new Vector3(Bars_rect.position.x, Input.GetTouch(0).position.y, 0);
+    }
+    if (Bars_rect.gameObject.name == "초점 조절바")
+    {
+        blurAmount = (-300 - Bars_rect.localPosition.y) * 0.01f;
+    }
+    if (Bars_rect.gameObject.name == "줌 조절바")
+    {
+        zoomAmount = Math.Abs((-800 - Bars_rect.localPosition.y) * 0.005f);
+    }
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 이미지를 8방향으로 퍼트리고 투명도를 조절함</h6>
+                    </details>
+                </div>
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">코드 해석</h4>
+                        <h6 class="text-white"><a href="https://github.com/DevJinsh/Colorless/tree/main/Assets/Script">전체 코드보기(깃허브)</a></h6>
+                        <h6 class="text-white"><a href="https://blog.naver.com/sanghun1425/222147705779">코드 해석보기(블로그)</a></h6>
                     </div>
                 </div>
                 <div class="row gx-0 mt-5 mb-1 mb-lg-4 align-items-center">
