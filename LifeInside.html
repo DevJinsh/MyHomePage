@@ -65,208 +65,23 @@
                 
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
                     <div class="bg-black text-center h-100 project">
-                        <h4 class="text-white" style="margin-top: 15px">UIController 소스코드</h4>
-                        <h6 class="text-white"><a href="https://blog.naver.com/sanghun1425/223290955990">다른 코드 보기(블로그)</a></h6>
-                    </div>
-                    <div class="bg-black text-left h-100 project source-codescroll">
-                        <pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-
-public class UIController : MonoBehaviour
-{
-    #region PublicVariables
-    public TextMeshProUGUI happinessText;
-    public TextMeshProUGUI fatigueText;
-    public TextMeshProUGUI moneyText;
-
-
-    public TextMeshProUGUI dayText;
-    public TextMeshProUGUI gameTimeText;
-    public TextMeshProUGUI levelText;
-
-    public Slider happySlider;
-    public Slider fatigueSlider;
-
-    public TextMeshProUGUI talkerText;
-    public TextMeshProUGUI contentText;
-
-
-    public GameObject dialogueWindow;
-    public GameObject selectEventWindow;
-    public GameObject interactionInfo;
-    
-
-    public GameObject mapPanel;
-    public GameObject tutorialPanel;
-    public GameObject tutorialPrevPanel;
-
-
-    public UIEffect uIEffect;
-    public Reaper reaper;
-
-
-
-    #endregion
-
-    #region PrivateVariables
-    private float money;
-    private float gameTime;
-    private float hour;
-    private float day;
-    private string level;
-
-#endregion
-
-#region PublicMethods
-
-    public void SetHappySlider(float value_)
-    {
-        happySlider.value = value_;
-    }
-
-    public void SetFatigueSlider(float value_)
-    {
-        fatigueSlider.value = value_;
-    }
-
-    public void SetMoneyText(int money_)
-    {
-        moneyText.text = money_.ToString();
-    }
-
-
-    public void EnableWindow()
-    {
-        if( !dialogueWindow.activeSelf ){
-            dialogueWindow.SetActive(true);
-        }
-    }
-
-    public void DisableWindow()
-    {
-        if( dialogueWindow.activeSelf ){
-            dialogueWindow.SetActive(false);
-        }
-    }
-
-    public void MapToggle()
-    {
-        mapPanel.SetActive( !mapPanel.activeSelf );
-    }
-
-
-    public void EnableTutorial()
-    {
-        Destroy(FindAnyObjectByType&lt;MainMenu&gt;().gameObject);
-        if ( !tutorialPanel.activeSelf ){
-            tutorialPrevPanel.SetActive(false);
-            tutorialPanel.SetActive(true);
-        }
-    }
-    public void DisableTutorial()
-    {
-        if( tutorialPanel.activeSelf ){
-            tutorialPanel.SetActive(false);
-
-            GameManager.I.StartMainGame();
-        }
-    }
-
-
-    public void SetEpisodeInfo(Episode episode, bool canAffordMoeny, bool canAffordTime )
-    {
-        TMP_Text[] text = interactionInfo.GetComponentsInChildren&lt;TMP_Text&gt;();
-        text[0].text = episode.location;
-        text[1].text = episode.happyGain   &gt; 0 ? "행복도+" : "행복도-";
-        text[2].text = episode.fatigueGain &gt; 0 ? "피로도+" : "피로도-";
-        if (episode.moneyGain &gt; 0)
-        {
-            text[3].text = "돈+";
-        }
-        else
-        {
-            if (canAffordMoeny)
-            {
-                text[3].text = (episode.moneyCost / 10000).ToString() + "만원 필요";
-            }
-            else
-            {
-                text[3].text = ((episode.moneyCost - GameManager.I.money)/10000).ToString() + "만원 부족";
-            }
-        }
-
-        if ( canAffordTime ) //1시간 전에 막아야 분까지 포함되어 막을 수 있음
-        {
-            text[4].text =  "시간 부족";
-        }
-        else
-        {
-            text[4].text = episode.timeCost.ToString() + "시간 소요";
-        }
-    }
-
-    public void SetEmptyInfo(string location)
-    {
-        TMP_Text[] text = interactionInfo.GetComponentsInChildren&lt;TMP_Text&gt;();
-        text[0].text = location;
-        text[1].text = GameManager.I.playerController.GetLevelStr();
-        text[2].text = "이용불가";
-        text[3].text = "";
-        text[4].text = "";
-
-    }
-
-
-
-
-
-#endregion
-
-#region PrivateMethods
-    void Start()
-    {
-    }
-    void FixedUpdate()
-    {
-        money     = GameManager.I.money;
-        gameTime  = GameTime.I.gameTime;
-        hour      = GameTime.curHour;
-        day       = GameTime.I.day;
-        gameTime  = Mathf.Floor(gameTime * 100f);
-        level     = GameManager.I.playerController.GetLevelStr();
-
-
-        if(moneyText != null){
-            moneyText.text     = money.ToString();
-        }
-        if(gameTimeText != null){
-            gameTimeText.text  = hour.ToString() + " : " + gameTime.ToString();
-        }
-        if(dayText != null){
-            dayText.text  = "Day " + day.ToString();
-        }
-
-        if(levelText != null){
-            levelText.text  = level;
-        }
-
-    }
-
-
-    #endregion
-
-}
-                    </code></pre>
-                    </div>
-                    <div class="bg-black text-center h-100">
-                        <h5 class="text-white" style="margin-top: 15px"></h5>
-                        <h6 class="text-white" style="font-size: 15px">
-                            UI를 총괄적으로 관리하는 스크립트입니다. 건물의 정보, 행복도와 피로도 게이지 등 화면상에 표현되는 것들을 한번에 관리합니다.
-                        </h6>
+                        <h4 class="text-white" style="margin-top: 15px">인생인사이드 전체 코드</h4>
+                        <h6 class="text-white"><a href="https://github.com/DevJinsh/OnlyScriptsList/tree/main/ChessTrail">코드 보기(깃허브)</a></h6>
                     </div>
                 </div>
+                <div class="row gx-0 mt-5 mb-1 mb-lg-4 align-items-center">
+                    <div class="bg-black text-center h-100">
+                        <h4 class="text-white" style="margin-top: 15px">배운 점 &amp; 느낀 점</h4>
+                    </div>
+                </div>
+                <ul>
+                    <li>각 파트별 작업물을 받을 때 어떤 방식으로 받아야 작업을 하는 데 필요한 리소스들을 추가로 가공하지 않고 사용할 수 있는지 알게 되었습니다.</li>
+                    <li>모바일의 다양한 디스플레이 크기를 고려하지 못하고 다양한 환경에 대응하지 못해 화면상에서 오브젝트가 보이지 않는 경우가 생겼습니다.
+                        다양한 변수들에 대응할 수 있도록 환경을 구축하는 방법을 미리 구상해야 한다는 사실을 배웠습니다.</li>
+                    <li>쉐이더 그래프를 처음 사용하면서 새로운 기술을 학습하는 방식에 대해 배웠습니다.
+                        새로운 기술에 대해서 학습할 때 이 기술을 이용해 어떤 기능을 만들 것인가로 처음 접근하여 기능을 만들며 사용된 기술의 원리를 이해하는 방식으로 학습했습니다.</li>
+                    
+                </ul>
             </div>
         </section>
         

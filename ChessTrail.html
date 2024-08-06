@@ -43,29 +43,15 @@
                     <div class="bg-black text-center h-100">
                         <h4 class="text-white" style="margin-top: 15px">담당 업무</h4>
                     </div>
-                    <h5 class="mt-2">&#8226; 게임판 셋팅</h5>
+                    <h5 class="mt-2">&#8226; 게임판</h5>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Document.jpg">
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Document-2.jpg">
-                    <h6 class="mt-2">엑셀 문서를 활용하여 스테이지별 판을 만들어 관리하도록 만들었습니다.</h6>
-                    <h6>그저 숫자로 표기하여 보는 것이 아닌 조건부 서식을 통해 직관적으로 스테이지의 모양을 볼 수 있도록하여 작업 시 실수를 줄이는 효과를 주었습니다.</h6>
-                    
-                    <h5 class="mt-2">&#8226; 프로모션 타일</h5>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Promotion.jpg">
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Promotion-2.jpg">
-                    <h6 class="mt-2">폰 기물을 이용해 프로모션 칸에 도착하면 원하는 기물로 변경이 가능합니다.</h6>
-                    <h6>프로모션으로 변수를 두어 더 많은 선택지를 줌으로 프로모션을 하냐 안하냐의 차이로 바뀌는 전략의 재미를 의도하였습니다.</h6>
-                    <h5 class="mt-2">&#8226; UI</h5>
-                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Clear.jpg">
-                    <h6 class="mt-2">퍼펙트(좌) / 일반(우) 클리어 구분 - 한번도 편의 기능(홀드, 리무브)를 사용하지 않고 클리어할 시 퍼펙트로 기록됩니다.</h6>
-                    <h6></h6>
-                    <h6>퍼즐을 즐겨하는 사람들에게 올 퍼펙트를 노리고 더욱 깊이 생각하여 플레이하는 재미와 성취감을 주는 것을 의도했습니다.</h6>
-                </div>
-                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="bg-black text-center h-100 project">
-                        <h4 class="text-white" style="margin-top: 15px">CSVReader 소스코드</h4>
-                    </div>
-                    <div class="bg-black text-left h-100 project source-codescroll">
-                        <pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+                    <details>
+                        <summary>게임판 구현 방법</summary>
+                        <div class="ms-lg-4">
+                            <details>
+                                <summary>CSV파일 변환</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -81,7 +67,7 @@ public class CSVReader : MonoBehaviour
     int trueCount;
 
     (int y, int x) startPos;
-
+    
     List&lt;ChessPieceType&gt; chessPieces;
 
     private bool debug()
@@ -102,7 +88,7 @@ public class CSVReader : MonoBehaviour
         string[] stageInfoLines = stageInfo.text.Split("\n");
 
         int lineCount = lines.Length;
-        int[, ] mapData = new int[lineCount, lineCount];
+        int[,] mapData = new int[lineCount, lineCount];
         for (int i = 0; i &lt; lineCount; i++)
         {
             string trimData = lines[i].Trim();
@@ -113,7 +99,7 @@ public class CSVReader : MonoBehaviour
                 {
                     mapData[i, j] = Int32.Parse(data[j]);
                 }
-                catch when(debug())
+                catch when (debug())
                 {
 
                 }
@@ -122,7 +108,7 @@ public class CSVReader : MonoBehaviour
         var stageData = stageInfoLines[stageNum].Split(",");
         stageName = stageData[0].ToUpper();
         trueCount = Int32.Parse(stageData[1]);
-
+        
         //start pos
         var startPosText = stageData[2].Split('_');
         startPos = (Int32.Parse(startPosText[0]), Int32.Parse(startPosText[1]));
@@ -136,38 +122,502 @@ public class CSVReader : MonoBehaviour
             }
             switch (stageData[i])
             {
-            case "폰":
-                chessPieces.Add(ChessPieceType.Pawn);
-                break;
-            case "나이트":
-                chessPieces.Add(ChessPieceType.Knight);
-                break;
-            case "비숍":
-                chessPieces.Add(ChessPieceType.Bishop);
-                break;
-            case "룩":
-                chessPieces.Add(ChessPieceType.Rook);
-                break;
-            case "킹":
-                chessPieces.Add(ChessPieceType.King);
-                break;
-            case "퀸":
-                chessPieces.Add(ChessPieceType.Queen);
-                break;
+                case "폰":
+                    chessPieces.Add(ChessPieceType.Pawn);
+                    break;
+                case "나이트":
+                    chessPieces.Add(ChessPieceType.Knight);
+                    break;
+                case "비숍":
+                    chessPieces.Add(ChessPieceType.Bishop);
+                    break;
+                case "룩":
+                    chessPieces.Add(ChessPieceType.Rook);
+                    break;
+                case "킹":
+                    chessPieces.Add(ChessPieceType.King);
+                    break;
+                case "퀸":
+                    chessPieces.Add(ChessPieceType.Queen);
+                    break;
             }
         }
         return new Stage(stageName, startPos, mapData, trueCount, chessPieces, (0, 0));
     }
 }
-                    </code></pre>
-                    </div>
-                    <div class="bg-black text-center h-100">
-                        <h5 class="text-white" style="margin-top: 15px">CSV파일을 읽어 스테이지를 세팅하는 코드입니다.</h5>
-                        <h6 class="text-white" style="font-size: 15px">
-                            스테이지별 기물들과 맵 크기 등을 불러와 세팅합니다.
-                        </h6>
+
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 엑셀 파일을 CSV파일로 변환</h6>
+                        <h6>&#45; 엑셀 파일에서 조건부 서식을 활용하여 휴먼에러를 감소시킴</h6>
+                            </details>
+                            <details>
+                                <summary>클래스 - 스테이지</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Stage
+{
+    public Stage(string stageName, (int y, int x) startPos, int[,] map, int countTrue, List&lt;ChessPieceType&gt; pieceTypes, (int turn, int destroyCnt) highScore, bool isclear = false)
+    {
+        this.StageName = stageName;
+        this.Map = map;
+        this.CountStageTrue = countTrue;
+        this.IsClear = isclear;
+        this.HighScore = highScore;
+        this.PieceTypes = pieceTypes;
+        StartPosition = startPos;
+    }
+
+    public string StageName { get; set; }               // 스테이지 이름
+    public int[,] Map { get; set; }                     // 맵 모양 (0, 1) or (true, false)? 
+    public int CountStageTrue { get; set; }             // 클리어 True 갯수
+    public bool IsClear { get; set; }                   // 클리어 정보
+    public (int turn, int destroyCnt) HighScore { get; set; }
+    
+    public List&lt;ChessPieceType&gt; PieceTypes { get; set; }
+    public Sprite Sprite { get; set; }
+
+    public (int y, int x) StartPosition { get; set; } = (4, 0); // [TODO] 임시
+
+    public bool PerfectClear { get; set; }
+
+
+}
+
+                </code></pre></div>
+                            </details>
+                            <details>
+                                <summary>스테이지 관리</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.Serialization;
+
+public class StageManager : MonoBehaviour
+{
+    [Header("Stage List Control")]
+    public Transform selectStageListTr;       // 스테이지 생성 위치
+    public GameObject selectStagePrefab;      // 스테이지 프리팹
+    
+    public List&lt;Stage&gt; StageList { get; private set; }
+
+    private CSVReader _reader;
+    private Stage stages;
+
+    public Stage currentStage;
+    private int stageCount;
+    /// &lt;summary&gt;
+    /// 게임 시작시, GameManager에서 호출되는 초기화 함수
+    /// &lt;/summary&gt;
+    public void Init()
+    {
+        LoadData();
+        CreateStageObj();
+    }
+    
+    /// &lt;summary&gt;
+    /// 스테이지 정보를 읽어서 저장하는 함수
+    /// &lt;/summary&gt;
+    private void LoadData()
+    {
+        _reader = GetComponent&lt;CSVReader&gt;();
+        List&lt;TextAsset&gt; files = Resources.LoadAll&lt;TextAsset&gt;("StageData").ToList();
+        StageList = new List&lt;Stage&gt;();
+        for(int i = 0; i &lt; files.Count - 1; i++)
+        {
+            var name = $"Stage {i}";
+            stages = _reader.ReadMapDataCsv(name, i+1);
+            stages.Sprite = Resources.Load&lt;Sprite&gt;($"SelectStage/SelectStage_{name}");
+            StageList.Add(stages);
+        }
+        // [TODO] Stage 정보를 읽음
+    }
+
+    /// &lt;summary&gt;
+    /// 읽혀진 스테이지 정보를 읽어, 스테이지 전체 리스트를 화면에 생성하는 함수
+    /// &lt;/summary&gt;
+    private void CreateStageObj()
+    {
+        foreach (var stage in StageList)
+        {
+            var obj = Instantiate(selectStagePrefab, selectStageListTr);
+            obj.GetComponent&lt;UIStage&gt;().Init(stage);
+            obj.GetComponentInChildren&lt;TMP_Text&gt;().text = stage.StageName;
+        }
+
+    }
+
+    /// &lt;summary&gt;
+    /// 스테이지 클리어 등 정보 업데이트 시, 호출되는 함수
+    /// &lt;/summary&gt;
+    public void UpdateStageObj()
+    {
+        selectStageListTr.BroadcastMessage("UpdateInfo");
+    }
+}
+
+                </code></pre></div>
+                            </details>
+                            <details>
+                                <summary>타일 생성</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class TileManager : MonoBehaviour
+{
+    public int cellCount;
+    public GameObject cell;
+    public GameObject nonoPanel;
+    public Sprite promotionTileImage;
+
+    private GridLayoutGroup _nonoGridGroup;
+    
+
+    public CellEvent[,] Tiles { get; private set; }
+
+    public void CreateTile(Stage stage)
+    {
+        _nonoGridGroup = nonoPanel.GetComponent&lt;GridLayoutGroup&gt;();
+        cellCount = (int)Mathf.Sqrt(stage.Map.Length);
+
+        CreateCrossLine(cellCount);
+
+        _nonoGridGroup = nonoPanel.GetComponent&lt;GridLayoutGroup&gt;();
+        _nonoGridGroup.constraintCount = cellCount;
+        
+        float cellsize = nonoPanel.GetComponent&lt;RectTransform&gt;().sizeDelta.x / cellCount;
+        _nonoGridGroup.cellSize = Vector2.one * cellsize;
+        
+
+        Tiles = new CellEvent[cellCount, cellCount];
+
+        for (int y = 0; y &lt; cellCount; y++)
+        {
+            for (int x = 0; x &lt; cellCount; x++)
+            {
+                var obj = Instantiate(cell, nonoPanel.transform);
+                obj.name = "Cell" + y + "," + x;
+                var tile = obj.GetComponent&lt;CellEvent&gt;();
+                Tiles[y, x] = tile;
+
+                if (stage.Map[y, x] == 0) tile.DisableCell();
+                if (stage.Map[y, x] == 2)
+                {
+                    tile.IsPromotionTile = true;
+                    tile.GetComponent&lt;Image&gt;().sprite = promotionTileImage;
+                }
+            }
+        }
+    }
+
+
+    private List&lt;CellEvent&gt; _beforeSelectableTiles;
+    public void ResetSelectableTiles()
+    {
+        _beforeSelectableTiles?.ForEach(x=&gt; x.SetSelectableSprite(false, default));
+        _beforeSelectableTiles = null;
+    }
+    public void UpdateSelectableTiles(CellEvent cell, ChessPieceType type)
+    {
+        (int x, int y) curPos = FindItemIndex(Tiles, cell);
+
+        if (curPos != (-1, -1))
+        {
+            var moves = type switch
+            {
+                ChessPieceType.Pawn =&gt; GetPawnMoves(curPos),
+                ChessPieceType.Bishop =&gt; GetBishopMoves(curPos),
+                ChessPieceType.Rook =&gt; GetRookMoves(curPos),
+                ChessPieceType.Knight =&gt; GetKnightMoves(curPos),
+                ChessPieceType.Queen =&gt; GetQueenMoves(curPos),
+                ChessPieceType.King =&gt; GetKingMoves(curPos),
+            };
+
+            moves.ForEach(x =&gt; x.SetSelectableSprite(true, type));
+            _beforeSelectableTiles = moves;
+
+            if (moves.Count == 0)
+            {
+                GameManager.Instance._uiManager.HoverNoticeMessage(MessageContext.NoWay);
+            }
+        }
+    }
+    
+    public (int x, int y) FindItemIndex(CellEvent[,] array, CellEvent item)
+    {
+        int rows = array.GetLength(0);
+        int cols = array.GetLength(1);
+
+        for (int i = 0; i &lt; rows; i++)
+        {
+            for (int j = 0; j &lt; cols; j++)
+            {
+                if (array[i, j].Equals(item))
+                {
+                    return (i, j);
+                }
+            }
+        }
+
+        return (-1, -1);
+    }
+
+    private List&lt;CellEvent&gt; GetPawnMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+
+        int newX = curPos.x - 1;
+        int newY = curPos.y;
+
+        if (IsInsideBoard(newX, newY)) moves.Add(Tiles[newX, newY]);
+        newX -= 1;
+        if (IsInsideBoard(newX, newY)) moves.Add(Tiles[newX, newY]);
+
+        return moves;
+    }
+
+    private List&lt;CellEvent&gt; GetKnightMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+
+        int[] dx = { 1, 2, 2, 1, -1, -2, -2, -1 };
+        int[] dy = { 2, 1, -1, -2, -2, -1, 1, 2 };
+
+        for (int i = 0; i &lt; dx.Length; i++)
+        {
+            int newX = curPos.x + dx[i];
+            int newY = curPos.y + dy[i];
+
+            if (IsInsideBoard(newX, newY))
+            {
+                CellEvent targetCell = Tiles[newX, newY];
+                if (targetCell != null)
+                {
+                    moves.Add(targetCell);
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    private List&lt;CellEvent&gt; GetBishopMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+
+        int[] dx = { -1, -1, 1, 1 };
+        int[] dy = { -1, 1, -1, 1 };
+
+        for (int i = 0; i &lt; dx.Length; i++)
+        {
+            for (int j = 1; j &lt; Tiles.GetLength(0); j++)
+            {
+                int newX = curPos.x + (j * dx[i]);
+                int newY = curPos.y + (j * dy[i]);
+
+                if (!IsInsideBoard(newX, newY))
+                {
+                    break;
+                }
+
+                CellEvent targetCell = Tiles[newX, newY];
+                moves.Add(targetCell);
+            }
+        }
+
+        return moves;
+    }
+
+    private List&lt;CellEvent&gt; GetRookMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+
+        int[] dx = { -1, 1, 0, 0 };
+        int[] dy = { 0, 0, -1, 1 };
+
+        for (int i = 0; i &lt; dx.Length; i++)
+        {
+            for (int j = 1; j &lt; Tiles.GetLength(0); j++)
+            {
+                int newX = curPos.x + (j * dx[i]);
+                int newY = curPos.y + (j * dy[i]);
+
+                if (!IsInsideBoard(newX, newY))
+                {
+                    break;
+                }
+
+                CellEvent targetCell = Tiles[newX, newY];
+                moves.Add(targetCell);
+            }
+        }
+
+        return moves;
+    }
+
+    private List&lt;CellEvent&gt; GetQueenMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+        List&lt;CellEvent&gt; rookMoves = GetRookMoves(curPos);
+        List&lt;CellEvent&gt; bishopMoves = GetBishopMoves(curPos);
+
+        moves.AddRange(rookMoves);
+        moves.AddRange(bishopMoves);
+
+        return moves;
+    }
+
+    private List&lt;CellEvent&gt; GetKingMoves((int x, int y) curPos)
+    {
+        List&lt;CellEvent&gt; moves = new List&lt;CellEvent&gt;();
+
+        int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1 };
+        int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1 };
+
+        for (int i = 0; i &lt; dx.Length; i++)
+        {
+            int newX = curPos.x + dx[i];
+            int newY = curPos.y + dy[i];
+
+            if (IsInsideBoard(newX, newY))
+            {
+                CellEvent targetCell = Tiles[newX, newY];
+                if (targetCell != null)
+                {
+                    moves.Add(targetCell);
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    private bool IsInsideBoard(int x, int y)
+    {
+        return x &gt;= 0 &amp;&amp; x &lt; Tiles.GetLength(0) &amp;&amp; y &gt;= 0 &amp;&amp; y &lt; Tiles.GetLength(1);
+    }
+
+
+    public void NonoPanelClear()
+    {
+        for (int i = nonoPanel.transform.childCount - 1; i &gt;= 0; i--)
+        {
+            Destroy(nonoPanel.transform.GetChild(i).gameObject);
+        }   
+    }
+
+    void CreateCrossLine(int count)
+    {
+       // crossLine.sprite = crossLineSprite[count / 5 - 1];
+    }
+}
+
+                </code></pre></div>
+                                <h6 class="mt-2">&#45; GridLayoutGroup을 사용하여 자동정렬</h6>
+                                <h6>&#45; 스테이지 별 셀 갯수에 따라 셀 크기 계산</h6>
+                            </details>
+                        </div>
+                        
+                    </details>
+                    
+                    <h5 class="mt-2">&#8226; 프로모션 타일</h5>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Promotion.jpg">
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Promotion-2.jpg">
+                    <details>
+                        <summary>프로모션 타일 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+IEnumerator MovePiece()
+{
+    var backupBeforeTile = beforeTile;
+
+    CompleteSelected = false;
+    yield return new WaitUntil(() =&gt; CompleteSelected);
+
+    tileManager.ResetSelectableTiles(); // 이동 가능 범위 초기화
+
+    if (!NotMove)
+    {
+        // 이동 
+        _currentChessPiece.Move(beforeTile.transform.position);
+
+        // 프로모션 이벤트
+        if (_currentChessPiece.Type == ChessPieceType.Pawn &amp;&amp; beforeTile.IsPromotionTile)
+        {
+            _uiManager.promotionPanel.SetActive(true);
+            CompleteSelected = false;
+            yield return new WaitUntil(() =&gt; CompleteSelected);
+            _uiManager.promotionPanel.SetActive(false);
+            nextChessPieces.Insert(0, _promotionPieceType);
+            _beforePromotion = true;
+        }
+    }
+
+    // 파괴 
+    _previousPiecetype = _currentChessPiece.Type;
+    _currentChessPiece.Destroy();
+
+    NotMove = false;
+    CurrentMode = Mode.Spawn;
+
+}
+
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 타일의 타입에 프로모션 여부 정보를 저장</h6>
+                        <h6>&#45; 조건에 맞을 시 선택한 기물을 리스트에 삽입</h6>
+                    </details>
+                    <h5 class="mt-2">&#8226; UI</h5>
+                    <img class="img-fluid mb-3 mb-lg-0" src="assets/img/ChessTrail/Clear.jpg">
+                    <details>
+                        <summary>프로모션 타일 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+private void GameClear()
+{
+    Debug.Log("클리어");
+
+    var stage = stageManager.currentStage;
+    stage.IsClear = true;
+    Debug.Log("턴 카운트: " + TurnCount);
+    _uiManager.gameClearObj.transform.GetChild(3).gameObject.SetActive(false);
+    //stage.HighScore = (TurnCount, CurrentDestroyCount);
+    if (stage.CountStageTrue &gt;= (TurnCount + 2))
+    {
+        stage.PerfectClear = true;
+        _uiManager.gameClearObj.transform.GetChild(3).gameObject.SetActive(true);
+    }
+    _uiManager.ClearImg.sprite = stage.Sprite; 
+
+    GameEnd = true;
+    _uiManager.gameClearObj.SetActive(true);
+}
+
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 턴 수를 비교해서 퍼펙트 클리어 판단</h6>
+                    </details>
+                </div>
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="bg-black text-center h-100 project">
+                        <h4 class="text-white" style="margin-top: 15px">ChessTrail 전체 코드</h4>
+                        <h6 class="text-white"><a href="https://github.com/DevJinsh/OnlyScriptsList/tree/main/ChessTrail">코드 보기(깃허브)</a></h6>
                     </div>
                 </div>
+                <div class="row gx-0 mt-5 mb-1 mb-lg-4 align-items-center">
+                    <div class="bg-black text-center h-100">
+                        <h4 class="text-white" style="margin-top: 15px">배운 점 &amp; 느낀 점</h4>
+                    </div>
+                </div>
+                <ul>
+                    <li>Sprite와 UI를 함께 사용할 때는 레이어 우선 순위를 잘 따져보아야하며 만일 UI사이에 Sprite가 들어가는 경우가 생긴다면 카메라를 사용해 우선 순위를 정할 수 있지만 구조가 복잡해 질 수 있으므로 최대한 복잡하지 않은 UI 구조를 지향해야 하는 점을 배웠습니다.</li>
+                    <li>Null 연산자 ?의 활용도의 대해서 새롭게 배우게 되었습니다.</li>
+                    <li>데이터를 다루는 데에 있어 데이터 최신화 또는 테스트 중이던 데이터를 공유받는 등의 휴먼에러가 발생했었습니다. 데이터를 다룰 때 사용에 대한 기록을 남기고 사용 기록에 대해 공유해야 한다고 느꼈습니다. </li>
+                </ul>
             </div>
         </section>
         
