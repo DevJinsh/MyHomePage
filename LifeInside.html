@@ -34,7 +34,7 @@
                 <ul class="mb-5">
                     <li>팀 규모: 3명(기획1, 개발2) &#45;&gt; 개발자로 참여(기여도: 33%)</li>
                     <li>프로젝트 성격: 게임잼</li>
-                    <li>개발 기간: 1주일</li>
+                    <li>개발 기간: 5일</li>
                     <li>장르: 시뮬레이션</li>
                     <li>게임 설명: 랜덤으로 바뀌는 나이대에서 인생의 행복을 위해 자원 관리를 해야합니다.</li>
                     <li>특이 사항: <a href="https://drive.google.com/file/d/1LpJD7MvvvQMPdFajxPTAN7sYZfp9m04V/view?usp=sharing">(다운로드)</a></li>
@@ -46,27 +46,615 @@
                     
                     <h5 class="mt-2">&#8226; 아트</h5>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/character.jpg">
-                    <h6 class="mt-2">에셋스토어에서 구하지 못한 에셋을 만들기 위해 도트를 찍어 캐릭터와 애니메이션을 만들었습니다.</h6>
+                    <h6 class="mt-2">&#45; 에셋스토어에서 구하지 못한 에셋을 만들기 위해 도트를 찍어 캐릭터와 애니메이션을 만들었습니다.</h6>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/Map.jpg">
-                    <h6 class="mt-2">에셋스토어에서 구한 타일맵을 이용해 전체 맵을 만들었습니다.</h6>
+                    <h6 class="mt-2">&#45; 에셋스토어에서 구한 타일맵을 이용해 전체 맵을 만들었습니다.</h6>
                     
                     <h5 class="mt-2">&#8226; UI</h5>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/ObjectInfomation.jpg">
-                    <h6 class="mt-2">플레이어가 정확한 정보를 얻어 자원 관리를 할 수 있도록 건물의 정보를 제공하였습니다.</h6>
-                    <h6>건물과 상호작용이 가능할 때(트리거가 작동될 때) 건물의 위치를 불러와 정보를 출력하는 방식을 사용했습니다.</h6>
+                    <details>
+                        <summary>오브젝트 정보창 구현 방법</summary>
+                        <div class="ms-lg-4">
+                            <details>
+                                <summary>이벤트 오브젝트</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+
+public class EventObject : MonoBehaviour
+{
+    Episode calcDefEp; // show info 에서 쓰임. default 이벤트만
+
+    public string objName; // 외부에서 입력해넣음
+
+    bool canShowInfo;
+
+    public List&lt;Episode&gt; episodes;
+
+    public float uiOffset;
+
+    public bool isPositiveHappy;
+    public bool isPositiveFatigue;
+    public bool isPositiveMoney;
+    public int sendTime;
+
+    public bool isTouching;
+
+    public void init(string objName_, List&lt;Episode&gt; episodes_)
+    {
+        episodes = GameManager.I.eventManager.sortByLocation(objName);
+        objName = objName_;   // 마트
+        episodes = episodes_;  // 마트 에피소드
+        Debug.Log($"init EventObject {objName}  에피소드 수 {episodes.Count}");
+
+        GameTime.hourChangedEvent += UpdateInteractionInfo;
+    }
+
+
+    public void ProcessEvent()
+    {
+        Debug.Log($" Process Event {objName} "); 
+
+        List&lt;Episode&gt; epiByleveled = sortByLevelInEvtObj(episodes);
+        //int selectedNo = Prob.calcProb(epiByleveled);
+        List&lt;Episode&gt; sortEpi = epiByleveled.Where(item =&gt; item.defaultEpi == true).ToList();
+
+        /*if     ( selectedNo &gt; epiByleveled.Count ){ selectedNo = epiByleveled.Count-1;}
+        else if( selectedNo == -1 ){ return; }
+
+        Debug.Log($" selectedNo {selectedNo}    epiByleveled.Count  {epiByleveled.Count}");
+        */
+        //Episode selectedEp = epiByleveled[selectedNo];
+        Episode selectedEp = sortEpi[0];
+        if ( !CheckIfProcess() ){ return; }
+
+        GameManager.I.uIController.uIEffect.EffectStart();
+
+        GameManager.I.dialogueManager.PlayEvtDialogueFile(selectedEp.fileName);  //selectEp 와 calcDefEp 의 차이? 
+
+        StartCoroutine(WaitEndDialog(selectedEp));
+    }
+
+    bool CheckIfProcess()
+    {
+        // 여기서 막기, 실행되면 안되는 이벤트. 디폴트 기준으로 막음
+        // 금전 부족은, 현재 가진 돈을 기준으로 보여줌(default 이벤트).
+        // 디폴트보다 돈이 많다면 실행은 가능. 돈이 더깎이면 0원. 덜깎이면 다행.
+        if(calcDefEp == null){ 
+            Debug.Log("calc Def Ep is null");
+            return false; 
+        }
+
+        if(GameManager.I.money &lt; calcDefEp.moneyCost){
+            Debug.Log($" 돈 부족으로 실행 실패 | 현재돈  {GameManager.I.money}  필요돈  {calcDefEp.moneyCost}");
+            return false;
+        }
+        if (21 - GameTime.curHour &lt; calcDefEp.timeCost ) //남은 시간이 적으면 실행 불가 21인 이유 -&gt; 21:00초부터 막아야 초단위 포함이기 때문
+        {
+            Debug.Log($"시간 부족으로 실행 실패 | 남은시간 {21 - GameTime.curHour}  필요시간 {calcDefEp.timeCost}");
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    IEnumerator WaitEndDialog(Episode selectedEp)
+    {
+        // GameManager.I.eventManager.isCurDialogEnd 값이 true 가 된후 이후 코드 실행
+        yield return new WaitUntil(() =&gt; GameManager.I.eventManager.isCurDialogEnd );
+
+        GameTime.I.CostTime(selectedEp.timeCost);
+        GameManager.I.AddCharacterResource(selectedEp.happyGain, selectedEp.fatigueGain, selectedEp.moneyGain);
+        GameManager.I.SubCharacterResource(selectedEp.happyCost, selectedEp.fatigueCost, selectedEp.moneyCost);
+
+        if( selectedEp.hasMoreEvent ){
+            GameManager.I.uIController.selectEventWindow.GetComponent&lt;SelectOption&gt;().SetSubEvent(selectedEp);
+            GameManager.I.uIController.selectEventWindow.SetActive(true); // 추가 이벤트 실행여부 파악창
+        }
+
+        Debug.Log("selectedEp.respawnPos: "+ selectedEp.respawnPos);
+        // 병원 이벤트
+        if ( selectedEp.respawnPos == "병원" )
+        {
+            Debug.Log("병원 이벤트 시작");
+            if( GameManager.I.hospital != null){
+                Debug.Log("병원위치에서 리스폰");
+                GameManager.I.playerController.transform.position 
+                    = new Vector3(GameManager.I.hospital.transform.position.x, GameManager.I.hospital.transform.position.y, 0);
+            }
+        }
+    }
+
+    public void ShowInfo()
+    {
+        GameManager.I.uIController.interactionInfo.SetActive(true);
+    }
+    public void HideInfo()
+    {
+        GameManager.I.uIController.interactionInfo.SetActive(false);
+        resetCalcDefEp();
+    }
+
+    public void JudgeInfo()
+    {
+        Episode dEp = GetDefaultEp(this.objName);
+
+        if( dEp != null)
+        {
+            canShowInfo = true;
+
+            bool canAffordMoeny = dEp.moneyCost &lt;=  GameManager.I.money;
+            bool canAffordTime  = dEp.timeCost  &gt;  (GameTime.endHour - GameTime.curHour - 1) ;
+            GameManager.I.uIController.SetEpisodeInfo(dEp, canAffordMoeny, canAffordTime);
+        }
+        else
+        {
+            canShowInfo = false;
+            GameManager.I.uIController.SetEmptyInfo(this.objName);
+
+        }
+    }
+    Episode GetDefaultEp(string location)
+    {
+        int current_level = GameManager.I.playerController.level;
+        //Debug.Log($"CalcInfo : {current_level}");
+        List&lt;Episode&gt; sortLvlEp       = GameManager.I.eventManager.sortByLevel (current_level);
+        List&lt;Episode&gt; sortLvLocaEp    = sortLvlEp.Where(   item =&gt; item.location   == location).ToList();
+        List&lt;Episode&gt; sortLvLocaDefEp = sortLvLocaEp.Where(item =&gt; item.defaultEpi == true    ).ToList();
+
+        // Debug.LogFormat("sorted Ep Level({0}) Loca({1}) Default({2})",sortLvlEp.Count,sortLvLocaEp.Count, sortLvLocaDefEp.Count);
+
+        if (sortLvLocaDefEp.Count &gt; 0)
+        {
+            calcDefEp = sortLvLocaDefEp[0];  // todo. 디폴트가 있다면 디폴트만 됨.
+        }else{
+            // 현재 default event가 없는 곳은 없다.
+        }
+
+        return calcDefEp;
+    }
+
+    public void UpdateInteractionInfo()
+    {
+        if( !isTouching ){ return; }
+        if( !GameManager.I.uIController.interactionInfo.activeSelf ){ return; }
+        
+        JudgeInfo();
+    }
+
+    public void resetCalcDefEp()
+    {
+        calcDefEp = null;
+    }
+
+
+    List&lt;Episode&gt; sortByLevelInEvtObj(List&lt;Episode&gt; epis)
+    {
+        List&lt;Episode&gt; leveldepis = epis.Where(ep =&gt; ep.level == GameManager.I.playerController.level).ToList();
+
+        
+        foreach(Episode ep in leveldepis)
+        {
+            Debug.Log($"gameM level : {GameManager.I.playerController.level}  ep.level {ep.level}  ep {ep}" );
+        }
+
+        return leveldepis;
+    }
+}
+                </code></pre></div>
+                                <h6 class="mt-2">&#45; 콜라이더를 이용해 오브젝트 접촉 판단</h6>
+                                <h6>&#45; JudgeInfo() 함수를 사용해 정보 업데이트 함수 호출</h6>
+                            </details>
+                            <details>
+                                <summary>UI Controller</summary>
+                                <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+
+public class UIController : MonoBehaviour
+{
+    #region PublicVariables
+    public TextMeshProUGUI happinessText;
+    public TextMeshProUGUI fatigueText;
+    public TextMeshProUGUI moneyText;
+
+
+    public TextMeshProUGUI dayText;
+    public TextMeshProUGUI gameTimeText;
+    public TextMeshProUGUI levelText;
+
+    public Slider happySlider;
+    public Slider fatigueSlider;
+
+    public TextMeshProUGUI talkerText;
+    public TextMeshProUGUI contentText;
+
+
+    public GameObject dialogueWindow;
+    public GameObject selectEventWindow;
+    public GameObject interactionInfo;
+    
+
+    public GameObject mapPanel;
+    public GameObject tutorialPanel;
+    public GameObject tutorialPrevPanel;
+
+
+    public UIEffect uIEffect;
+    public Reaper reaper;
+
+
+
+    #endregion
+
+    #region PrivateVariables
+    private float money;
+    private float gameTime;
+    private float hour;
+    private float day;
+    private string level;
+
+#endregion
+
+#region PublicMethods
+
+    public void SetHappySlider(float value_)
+    {
+        happySlider.value = value_;
+    }
+
+    public void SetFatigueSlider(float value_)
+    {
+        fatigueSlider.value = value_;
+    }
+
+    public void SetMoneyText(int money_)
+    {
+        moneyText.text = money_.ToString();
+    }
+
+
+    public void EnableWindow()
+    {
+        if( !dialogueWindow.activeSelf ){
+            dialogueWindow.SetActive(true);
+        }
+    }
+
+    public void DisableWindow()
+    {
+        if( dialogueWindow.activeSelf ){
+            dialogueWindow.SetActive(false);
+        }
+    }
+
+    public void MapToggle()
+    {
+        mapPanel.SetActive( !mapPanel.activeSelf );
+    }
+
+
+    public void EnableTutorial()
+    {
+        Destroy(FindAnyObjectByType&lt;MainMenu&gt;().gameObject);
+        if ( !tutorialPanel.activeSelf ){
+            tutorialPrevPanel.SetActive(false);
+            tutorialPanel.SetActive(true);
+        }
+    }
+    public void DisableTutorial()
+    {
+        if( tutorialPanel.activeSelf ){
+            tutorialPanel.SetActive(false);
+
+            GameManager.I.StartMainGame();
+        }
+    }
+
+
+    public void SetEpisodeInfo(Episode episode, bool canAffordMoeny, bool canAffordTime )
+    {
+        TMP_Text[] text = interactionInfo.GetComponentsInChildren&lt;TMP_Text&gt;();
+        text[0].text = episode.location;
+        text[1].text = episode.happyGain   &gt; 0 ? "행복도+" : "행복도-";
+        text[2].text = episode.fatigueGain &gt; 0 ? "피로도+" : "피로도-";
+        if (episode.moneyGain &gt; 0)
+        {
+            text[3].text = "돈+";
+        }
+        else
+        {
+            if (canAffordMoeny)
+            {
+                text[3].text = (episode.moneyCost / 10000).ToString() + "만원 필요";
+            }
+            else
+            {
+                text[3].text = ((episode.moneyCost - GameManager.I.money)/10000).ToString() + "만원 부족";
+            }
+        }
+
+        if ( canAffordTime ) //1시간 전에 막아야 분까지 포함되어 막을 수 있음
+        {
+            text[4].text =  "시간 부족";
+        }
+        else
+        {
+            text[4].text = episode.timeCost.ToString() + "시간 소요";
+        }
+    }
+
+    public void SetEmptyInfo(string location)
+    {
+        TMP_Text[] text = interactionInfo.GetComponentsInChildren&lt;TMP_Text&gt;();
+        text[0].text = location;
+        text[1].text = GameManager.I.playerController.GetLevelStr();
+        text[2].text = "이용불가";
+        text[3].text = "";
+        text[4].text = "";
+
+    }
+
+
+
+
+
+#endregion
+
+#region PrivateMethods
+    void Start()
+    {
+    }
+    void FixedUpdate()
+    {
+        money     = GameManager.I.money;
+        gameTime  = GameTime.I.gameTime;
+        hour      = GameTime.curHour;
+        day       = GameTime.I.day;
+        gameTime  = Mathf.Floor(gameTime * 100f);
+        level     = GameManager.I.playerController.GetLevelStr();
+
+
+        if(moneyText != null){
+            moneyText.text     = money.ToString();
+        }
+        if(gameTimeText != null){
+            gameTimeText.text  = hour.ToString() + " : " + gameTime.ToString();
+        }
+        if(dayText != null){
+            dayText.text  = "Day " + day.ToString();
+        }
+
+        if(levelText != null){
+            levelText.text  = level;
+        }
+
+    }
+
+
+    #endregion
+
+}
+                </code></pre></div>
+                                <h6 class="mt-2">&#45; SetEpisodeInfo() 함수를 이용해 오브젝트 정보를 변경</h6>
+                            </details>
+                        </div>
+                    </details>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/Reaper.jpg">
-                    <h6 class="mt-2">5일차 부터 사신이 캐릭터를 따라다니며 간접적으로 게임 오버를 표현하도록 만들었습니다. 행복도와 피로도에 따라서 오버되기 때문에 행복도와 피로도에 따라 사신의 선명도를 조절하였습니다.</h6>
+                    <details>
+                        <summary>사신 움직임 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ReaperController : MonoBehaviour
+{
+    public GameObject target;
+
+    float distance;
+    float range = 3f;
+    float smooth = 0.0001f;
+    Coroutine moveCoroutine;
+
+    private void FixedUpdate()
+    {
+        distance =  Vector2.Distance(target.transform.position, transform.position);
+        if(distance &gt; range)
+        {
+            if (moveCoroutine == null)
+            {
+                StartCoroutine(MoveToTarget());
+            }
+        }
+        //사신 투명도 조절
+        Color imageColor = GetComponent&lt;SpriteRenderer&gt;().color;
+        imageColor.a = GameManager.I.playerController.deathProb / 20f;
+        GetComponent&lt;SpriteRenderer&gt;().color = imageColor;
+    }
+
+    IEnumerator MoveToTarget()
+    {
+        float current_Time = 0f;
+        while (distance &gt;= range)
+        {
+            yield return null;
+            current_Time += Time.fixedDeltaTime;
+            transform.position = Vector2.Lerp(transform.position, target.transform.position, distance * smooth);
+        }
+    }
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; Lerp를 이용해 자연스럽게 따라오도록 작업</h6>
+                        <h6>&#45; 캐릭터 기준 일정 범위를 벗어나면 추격</h6>
+                        <h6>&#45; 죽음 확률에 따라 투명도 조절</h6>
+                    </details>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/Death.jpg">
-                    <h6 class="mt-2">하루가 끝이나 잠이 들었을 때 행복도가 전부 소모되었거나 피로도가 가득 차게되면 게임오버 이벤트가 발생시켜 게임 오버가 됩니다.</h6>
+                    <details>
+                        <summary>사신 이벤트 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Reaper : MonoBehaviour
+{
+    private Coroutine disableReaper;
+    void Start()
+    {
+        gameObject.SetActive(false);
+    }
+
+    void ChangeEffectReaper(float deathProb)
+    {
+        //죽음 확률에 따라 사신 투명도 조절
+        Color imageColor = GetComponent&lt;Image&gt;().color;
+        imageColor.a = deathProb / 20f;
+        GetComponent&lt;Image&gt;().color = imageColor;
+        //죽음 확률에 따라 사신 크기 조절
+        GetComponent&lt;RectTransform&gt;().sizeDelta *= 1 + deathProb / 20f;
+    }
+
+    public void EnableReaper() // 경고하는 사신 연출, 4일이후 매일 지날떄
+    {
+        gameObject.SetActive(true);
+        Time.timeScale = 0f;
+        GameManager.I.uIController.uIEffect.EffectStart();
+        float deathProb = GameManager.I.playerController.deathProb;
+
+        if (deathProb &lt; 3f) // 1단계
+        {
+            GameManager.I.dialogueManager.PlayEvtDialogueFile("Reaper");
+        }
+        else if (deathProb &lt; 8f) // 2단계 
+        {
+            GameManager.I.dialogueManager.PlayEvtDialogueFile("Reaper");
+            ChangeEffectReaper(deathProb);
+        }
+        else if (deathProb &lt; 15f) // 3단계 (경고)
+        {
+            GameManager.I.dialogueManager.PlayEvtDialogueFile("Reaper");
+            ChangeEffectReaper(deathProb);
+        }
+        else // 4단계 (위협)
+        {
+            GameManager.I.dialogueManager.PlayEvtDialogueFile("Reaper");
+            ChangeEffectReaper(deathProb);
+        }
+        if (disableReaper != null) StopCoroutine(disableReaper);
+        disableReaper = StartCoroutine(DisableReaper());
+    }
+
+    public void EndingSceneReaper() // 사망연출 사신, Death()에서 콜. 각 죽음 대사 치고 넘어옴.
+    {
+        gameObject.SetActive(true);
+        Time.timeScale = 0f;
+
+        GetComponent&lt;Image&gt;().color = Color.white;
+        GetComponent&lt;RectTransform&gt;().sizeDelta = new Vector2(500f, 500f);
+
+        if (disableReaper != null) StopCoroutine(disableReaper);
+        disableReaper = StartCoroutine(DisableReaper());
+    }
+
+    IEnumerator DisableReaper()
+    {
+        yield return new WaitUntil(() =&gt; GameManager.I.eventManager.isCurDialogEnd);
+        Time.timeScale = 1f;
+        gameObject.SetActive(false);
+
+        GameManager.I.DeathLast();
+
+    }
+
+
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 게임 적응을 위한 사이클(4일차)이 지나고 출현 시작</h6>
+                        <h6>&#45; 사망 확률에 따라 사신의 모습  변화</h6>
+                    </details>
                     <img class="img-fluid mb-3 mb-lg-0" src="assets/img/LifeInside/Event.gif">
-                    <h6 class="mt-2">건물과 상호작용 시 화면을 검게 만들어 텍스트에 집중하도록 유도하였으며 CSV파일을 불러와 에피소드를 진행시켰습니다.</h6>
+                    <details>
+                        <summary>이벤트 효과 구현 방법</summary>
+                        <div class="bg-black text-left h-100 project source-codescroll"><pre class="source-codeplace" style="width: 1200px;"><code class="source-code">
+using System.Collections;
+using UnityEngine;
+
+public class UIEffect : MonoBehaviour
+{
+    private float currentAnchorePosY;
+    private float goalAnchorePosY;
+    private float currentSecond;
+
+    public float endSecond;
+
+    private Coroutine coroutine;
+
+    private void Start()
+    {
+        gameObject.SetActive(false);
+    }
+
+    public void init()
+    {
+        GetComponent&lt;RectTransform&gt;().anchoredPosition = Vector2.up * -GetComponent&lt;RectTransform&gt;().rect.height;
+    }
+    public void EffectStart()
+    {
+        GameManager.I.inputManager.LockInput();
+        gameObject.SetActive(true);
+        init();
+        goalAnchorePosY = 0;
+        currentAnchorePosY = GetComponent&lt;RectTransform&gt;().anchoredPosition.y;
+        Time.timeScale = 0f;
+        if (coroutine != null) StopCoroutine(coroutine);
+        coroutine = StartCoroutine(Effecting(currentAnchorePosY, goalAnchorePosY, false));
+    }
+
+    public void EffectEnd()
+    {
+        GameManager.I.inputManager.UnLockInput();
+        goalAnchorePosY = -GetComponent&lt;RectTransform&gt;().rect.height;
+        currentAnchorePosY = GetComponent&lt;RectTransform&gt;().anchoredPosition.y;
+        Time.timeScale = 1f;
+        if (coroutine != null) StopCoroutine(coroutine);
+        coroutine = StartCoroutine(Effecting(currentAnchorePosY, goalAnchorePosY, true));
+    }
+    IEnumerator Effecting(float start, float end, bool isEnding)
+    {
+        currentSecond = 0f;
+        while (currentSecond &lt; endSecond)
+        {
+            currentSecond += Time.fixedDeltaTime;
+            GetComponent&lt;RectTransform&gt;().anchoredPosition = new Vector2(0, Mathf.Lerp(start, end, currentSecond / endSecond));
+            yield return null;
+        }
+        if(isEnding)
+        {
+            if(!GameManager.I.playerController.isDeath){
+                gameObject.SetActive(false);
+            }
+        }
+    }
+
+
+}
+                </code></pre></div>
+                        <h6 class="mt-2">&#45; 코루틴을 이용해 서서히 검은 화면으로 만듦</h6>
+                    </details>
                     
                 </div>
                 
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
                     <div class="bg-black text-center h-100 project">
                         <h4 class="text-white" style="margin-top: 15px">인생인사이드 전체 코드</h4>
-                        <h6 class="text-white"><a href="https://github.com/DevJinsh/OnlyScriptsList/tree/main/ChessTrail">코드 보기(깃허브)</a></h6>
+                        <h6 class="text-white"><a href="https://github.com/DevJinsh/OnlyScriptsList/tree/main/LifeInside">코드 보기(깃허브)</a></h6>
                     </div>
                 </div>
                 <div class="row gx-0 mt-5 mb-1 mb-lg-4 align-items-center">
@@ -75,12 +663,9 @@
                     </div>
                 </div>
                 <ul>
-                    <li>각 파트별 작업물을 받을 때 어떤 방식으로 받아야 작업을 하는 데 필요한 리소스들을 추가로 가공하지 않고 사용할 수 있는지 알게 되었습니다.</li>
-                    <li>모바일의 다양한 디스플레이 크기를 고려하지 못하고 다양한 환경에 대응하지 못해 화면상에서 오브젝트가 보이지 않는 경우가 생겼습니다.
-                        다양한 변수들에 대응할 수 있도록 환경을 구축하는 방법을 미리 구상해야 한다는 사실을 배웠습니다.</li>
-                    <li>쉐이더 그래프를 처음 사용하면서 새로운 기술을 학습하는 방식에 대해 배웠습니다.
-                        새로운 기술에 대해서 학습할 때 이 기술을 이용해 어떤 기능을 만들 것인가로 처음 접근하여 기능을 만들며 사용된 기술의 원리를 이해하는 방식으로 학습했습니다.</li>
-                    
+                    <li>엑셀에 데이터를 정리한 후 CSV파일로 변환하여 파싱하는 방법을 배웠습니다. CSV파일로 변환하지 않은 엑셀파일을 그대로 사용했을 경우 유니티 개발 환경에서는 실행이 제대로 되었지만 빌드 환경에서는 제대로 작동하지 않는 경험을 하였습니다.</li>
+                    <li>아트를 해본 적 없었기 때문에 처음으로 타일맵을 다루어 보았는데 타일맵을 이용해 맵을 만드는 방법과 타일맵 수정, 타일맵 콜라이더에 대해서 새로 알게되었습니다.</li>
+                    <li>기획 부분에서 게임의 중점에 관해 서로 생각하는 방향이 다르면 나중에 추가 기능을 만들 때 의견 충돌이 생긴다는 것을 알게되었습니다. 초기 기획 단계에서 서로 생각하는 게임의 완성본을 이야기 해본 후 이해하고 넘어가는 것이 좋다는 것을 배웠습니다.</li>
                 </ul>
             </div>
         </section>
